@@ -5,6 +5,7 @@
 #include <vector>
 #include <conio.h>
 #include <utility>
+#include <random>
 
 using namespace std;
 
@@ -76,11 +77,23 @@ std::string takePasswdFromUser()
 Vault::Vault(string filenameIn, int encryptionKeyIn) {
 	filename = filenameIn;
 	encryptionKey = encryptionKeyIn;
+	numEntries = 0;
 }
 
 
 string Vault::generatePassword() {
-	return "incomplete";
+	const string chars = "1234567890ABCDEFGHIOJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=./:;<>?";
+	random_device rd;
+	mt19937 mt(rd());
+	uniform_int_distribution<size_t> distribution(0, chars.size() - 1);
+	string password;
+	cout << "How long would you like this password to be? ";
+	int length;
+	cin >> length;
+	for (size_t i = 0; i < length; i++) {
+		password += chars[distribution(mt)];
+	}
+	return password;
 }
 
 void Vault::add() {
@@ -88,7 +101,7 @@ void Vault::add() {
 	cout << "Adding new entry" << endl;
 	cout << "Enter the url for this login: ";
 	cin >> newEntry.url;
-	cout << "Enter the username for this login (no spaces): ";
+	cout << "Enter the username for this login (no spaces or commas): ";
 	cin >> newEntry.username;
 	cout << "Would you like to have a password generated or enter your own? (y\\n): ";
 	char input;
@@ -105,7 +118,7 @@ void Vault::add() {
 		newEntry.password = password;
 	}
 	else if (input == 'n') {
-		cout << "Enter the desired password: ";
+		cout << "Enter the desired password (no commas please): ";
 		newEntry.password = takePasswdFromUser();
 		cout << "Password is: " << newEntry.password << endl;
 	}
@@ -133,6 +146,17 @@ void Vault::view() {
 	cout << "Password: " << entries.at(input).second.password << endl;
 }
 
+void Vault::save() {
+	ofstream savedVault(filename);
+	if (!savedVault.is_open()) {
+		cout << "Some error has happened I'm not really sure what" << endl;
+	}
+	for (int i = 0; i < numEntries; i++) {
+		savedVault << entries.at(i).first << ";" << entries.at(i).second.username << ";" << entries.at(i).second.password << endl;
+	}
+	cout << "Vault has been saved to " << filename << "." << endl;
+}
+
 int main(int argc, char *argv[]) {
 	int encryptionKey;
 	cout << "Checking for existing vault..." << endl;
@@ -158,6 +182,7 @@ int main(int argc, char *argv[]) {
 	while (input != 'n') {
 		if (input == 'y') {
 			userVault.view();
+			cout << endl;
 		}
 		else {
 			cout << "Please enter 'y' or 'n'." << endl;
@@ -166,6 +191,11 @@ int main(int argc, char *argv[]) {
 			cin >> input;
 			cout << endl;
 		}
+	}
+	cout << "Would you like to save the vault? (y\\n): ";
+	cin >> input;
+	if (input == 'y') {
+		userVault.save();
 	}
 	cout << "Exiting password manager..." << endl;
 	//cout << "Hello world!" << endl;
