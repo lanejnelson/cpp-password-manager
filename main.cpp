@@ -5,16 +5,11 @@
 #include <vector>
 #include <conio.h>
 #include <utility>
+#include <sstream>
 #include <random>
+#include "utils.hpp"
 
 using namespace std;
-
-enum TT_Input {
-
-	// ASCII code of backspace is 8
-	BACKSPACE = 8,
-	RETURN = 32
-};
 
 struct PassEntry {
 	string url;
@@ -36,41 +31,12 @@ public:
 	void encrypt();
 	void decrypt();
 	void view();
-	void save();
+	bool save();
+	bool load();
 	string generatePassword();
 };
 
-std::string takePasswdFromUser()
-{
-	string ipt = "";
-	char ipt_ch;
-	while (true) {
-		ipt_ch = _getch();
 
-		if (ipt_ch < TT_Input::RETURN
-			&& ipt_ch != TT_Input::BACKSPACE) {
-			cout << endl;
-			return ipt;
-		}
-
-		// Check whether the user
-		// pressed backspace
-		if (ipt_ch == TT_Input::BACKSPACE) {
-
-			// Check if ipt is empty or not
-			if (ipt.length() == 0)
-				continue;
-			else {
-
-				// Removes last character
-				ipt.pop_back();
-
-				continue;
-			}
-		}
-		ipt.push_back(ipt_ch);
-	}
-}
 
 
 
@@ -146,42 +112,107 @@ void Vault::view() {
 	cout << "Password: " << entries.at(input).second.password << endl;
 }
 
-void Vault::save() {
+bool Vault::save() {
 	ofstream savedVault(filename);
 	if (!savedVault.is_open()) {
 		cout << "Some error has happened I'm not really sure what" << endl;
+		return false;
 	}
 	for (int i = 0; i < numEntries; i++) {
-		savedVault << entries.at(i).first << ";" << entries.at(i).second.username << ";" << entries.at(i).second.password << endl;
+		savedVault << entries.at(i).first << ";" << entries.at(i).second.url << ";" << entries.at(i).second.username << ";" << entries.at(i).second.password << endl;
 	}
 	cout << "Vault has been saved to " << filename << "." << endl;
+	savedVault.close();
+	return true;
 }
 
-int main(int argc, char *argv[]) {
-	int encryptionKey;
-	cout << "Checking for existing vault..." << endl;
-	ifstream vaultFile("vault.bin");
+bool Vault::load() {
+	ifstream vaultFile(filename);
 	if (!vaultFile.is_open()) {
-		cout << "Vault doesn't exist" << endl;
-		cout << "Creating new vault..." << endl;
-		ofstream vaultFile("vault.bin");
-		vaultFile << "";
-		vaultFile.close();
+		cout << "Loading failed try again later." << endl;
+		return false;;
 	}
-	else {
-		cout << "Vault found!" << endl;
+	string entry;
+	while (getline(vaultFile, entry)) {
+		int id;
+		string url;
+		string username;
+		string password;
+		stringstream ss(entry);
+		string readId;
+		getline(ss, readId, ';');
+		id = stoi(readId);
+		getline(ss, url, ';');
+		getline(ss, username, ';');
+		getline(ss, password);
+		//cout << id << ", " << url << ", " << username << ", " << password << endl;
+		PassEntry currEntry = { url, username, password };
+		entries.push_back({ id, currEntry });
 	}
-	cout << "Enter your encryption key: ";
-	cin >> encryptionKey;
-	Vault userVault("vault.bin", encryptionKey);
-	userVault.add();
-	userVault.view();
+	vaultFile.close();
+	return true;
+}
+
+void printMenu(int stage) {
+	if (stage == 0) {
+		cout << "[0] Load Vault File" << endl;
+		cout << "[1] Create New Vault" << endl;
+		cout << "[2] Exit Application" << endl;
+		cout << "Choice: ";
+	}
+	else if (stage == 1) {
+		cout << "[0] View Accounts" << endl;
+		cout << "[1] Add New Account" << endl;
+		cout << "[2] Remove An Account" << endl;
+		cout << "[3] Save Vault" << endl;
+		cout << "[4] Exit Application" << endl;
+		cout << "Choice: ";
+	}
+}
+
+
+int main(int argc, char *argv[]) {
+	int choice = -1;
+	int encryptionKey;
+	string filename;
+	Vault* userVault = nullptr;
+	printMenu(0);
+	cin >> choice;
+	if (choice == 0) {
+		cout << "Enter your encryption key: ";
+		cin >> encryptionKey;
+		cout << "Enter the filename of your vault: ";
+		cin >> filename;
+		userVault = new Vault(filename, encryptionKey);
+		userVault->load();
+	}
+	else if (choice == 1) {
+		cout << "Enter your desired encryption key: ";
+		cin >> encryptionKey;
+		cout << "Enter the desired filename of your new vault: ";
+		cin >> filename;
+		userVault = new Vault(filename, encryptionKey);
+	}
+	else if (choice == 2) {
+		cout << "Exiting..." << endl;
+		return 0;
+	}
+	while (choice != 0 && choice != 1 && choice != 2) {
+		cout << "Please enter a valid option." << endl;
+		cout << "Choice: ";
+		cin >> choice;
+	}
+	printMenu(1);
+	cin >> choice;
+	//clearScreen();
+	//userVault->add();
+	//userVault->view();
 	cout << "Would you like to view another account? (y\\n): ";
 	char input;
-	input = _getch();
+	cin >> input;
 	while (input != 'n') {
 		if (input == 'y') {
-			userVault.view();
+			userVault->view();
 			cout << endl;
 		}
 		else {
@@ -195,8 +226,9 @@ int main(int argc, char *argv[]) {
 	cout << "Would you like to save the vault? (y\\n): ";
 	cin >> input;
 	if (input == 'y') {
-		userVault.save();
+		userVault->save();
 	}
 	cout << "Exiting password manager..." << endl;
+	delete userVault;
 	//cout << "Hello world!" << endl;
 }
