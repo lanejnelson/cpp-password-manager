@@ -33,6 +33,7 @@ public:
 	void view();
 	bool save();
 	bool load();
+	bool remove();
 	string generatePassword();
 };
 
@@ -93,6 +94,10 @@ void Vault::add() {
 }
 
 void Vault::view() {
+	if (numEntries == 0) {
+		cout << "There are no accounts to view. Exiting to menu..." << endl;
+		return;
+	}
 	for (int i = 0; i < numEntries; i++) {
 		cout << "[" << i << "]: " << entries.at(i).second.url << endl;
 	}
@@ -110,6 +115,36 @@ void Vault::view() {
 	cout << "[" << input << "]: " << entries.at(input).second.url << endl;
 	cout << "Username: " << entries.at(input).second.username << endl;
 	cout << "Password: " << entries.at(input).second.password << endl;
+	cout << "Would you like to view another account? (y\\n): ";
+	char input2;
+	cin >> input2;
+	while (input2 != 'n' && input2 != 'y') {
+		cout << "Please enter 'y' or 'n'." << endl;
+		cout << "Would you like to view another account? (y\\n): ";
+		cin >> input2;
+	}
+	if (input2 == 'y') {
+		view();
+	}
+	else {
+		return;
+	}
+	/*
+	while (input2 != 'n') {
+		if (input2 == 'y') {
+			view();
+			cout << endl;
+		}
+		else {
+			while (input2 != 'n' && input2 != 'y') {
+				cout << "Please enter 'y' or 'n'." << endl;
+				cout << "Would you like to view another account? (y\\n): ";
+				cin >> input2;
+				cout << endl;
+			}
+		}
+	}
+	*/
 }
 
 bool Vault::save() {
@@ -148,9 +183,50 @@ bool Vault::load() {
 		//cout << id << ", " << url << ", " << username << ", " << password << endl;
 		PassEntry currEntry = { url, username, password };
 		entries.push_back({ id, currEntry });
+		++numEntries;
 	}
 	vaultFile.close();
 	return true;
+}
+
+bool Vault::remove() {
+	if (numEntries == 0) {
+		cout << "There are no accounts to remove" << endl;
+		return false;
+	}
+	else {
+		for (int i = 0; i < numEntries; i++) {
+			cout << "[" << i << "]: " << entries.at(i).second.url << endl;
+		}
+		cout << "Which account would you like to remove? " << endl;
+		int choice;
+		cin >> choice;
+		while ((choice < 0) || (choice > (numEntries - 1))) {
+			cout << "Please enter a valid account." << endl;
+			for (int i = 0; i < numEntries; i++) {
+				cout << "[" << i << "]: " << entries.at(i).second.url << endl;
+			}
+			cout << "Which account would you like to login to? ";
+			cin >> choice;
+		}
+		cout << "Are you sure you want to remove account " << choice << "? (y\\n) ";
+		char confirm;
+		cin >> confirm;
+		if (confirm == 'y') {
+			cout << "Removing account " << choice << "..." << endl;
+			entries.erase(entries.begin() + choice);
+			--numEntries;
+		}
+		else if (confirm == 'n') {
+			cout << "Exiting to menu" << endl;
+		}
+		else {
+			while (confirm != 'y' && confirm != 'n') {
+				cout << "Please enter 'y' or 'n'." << endl;
+				remove();
+			}
+		}
+	}
 }
 
 void printMenu(int stage) {
@@ -204,26 +280,32 @@ int main(int argc, char *argv[]) {
 	}
 	printMenu(1);
 	cin >> choice;
+	if (choice == 0) {
+		userVault->view();
+	}
+	else if (choice == 1) {
+		userVault->add();
+	}
+	else if (choice == 2) {
+		userVault->remove();
+	}
+	else if (choice == 3) {
+		userVault->save();
+	}
+	else if (choice == 4) {
+		return 1;
+	}
+	while (choice != 0 && choice != 1 && choice != 2 && choice != 3 && choice != 4) {
+		cout << "Please enter a valid option." << endl;
+		cout << "Choice: ";
+		cin >> choice;
+	}
 	//clearScreen();
 	//userVault->add();
 	//userVault->view();
-	cout << "Would you like to view another account? (y\\n): ";
-	char input;
-	cin >> input;
-	while (input != 'n') {
-		if (input == 'y') {
-			userVault->view();
-			cout << endl;
-		}
-		else {
-			cout << "Please enter 'y' or 'n'." << endl;
-			cout << "Would you like to view another account? (y\\n): ";
-			char input;
-			cin >> input;
-			cout << endl;
-		}
-	}
+	
 	cout << "Would you like to save the vault? (y\\n): ";
+	char input;
 	cin >> input;
 	if (input == 'y') {
 		userVault->save();
