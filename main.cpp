@@ -247,7 +247,7 @@ void printMenu(int stage) {
 }
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	int choice = -1;
 	int encryptionKey;
 	string filename;
@@ -278,39 +278,43 @@ int main(int argc, char *argv[]) {
 		cout << "Choice: ";
 		cin >> choice;
 	}
-	printMenu(1);
-	cin >> choice;
-	if (choice == 0) {
-		userVault->view();
-	}
-	else if (choice == 1) {
-		userVault->add();
-	}
-	else if (choice == 2) {
-		userVault->remove();
-	}
-	else if (choice == 3) {
-		userVault->save();
-	}
-	else if (choice == 4) {
-		return 1;
-	}
-	while (choice != 0 && choice != 1 && choice != 2 && choice != 3 && choice != 4) {
-		cout << "Please enter a valid option." << endl;
-		cout << "Choice: ";
+	while (true) {
+		printMenu(1);
 		cin >> choice;
+		if (choice == 0) {
+			userVault->view();
+		}
+		else if (choice == 1) {
+			userVault->add();
+		}
+		else if (choice == 2) {
+			userVault->remove();
+		}
+		else if (choice == 3) {
+			userVault->save();
+		}
+		else if (choice == 4) {
+			break;
+		}
+		while (choice != 0 && choice != 1 && choice != 2 && choice != 3 && choice != 4) {
+			cout << "Please enter a valid option." << endl;
+			cout << "Choice: ";
+			cin >> choice;
+		}
 	}
 	//clearScreen();
 	//userVault->add();
 	//userVault->view();
-	
+	/*
 	cout << "Would you like to save the vault? (y\\n): ";
 	char input;
 	cin >> input;
 	if (input == 'y') {
 		userVault->save();
 	}
+	*/
 	cout << "Exiting password manager..." << endl;
 	delete userVault;
+	return 0;
 	//cout << "Hello world!" << endl;
 }
