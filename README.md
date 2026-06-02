@@ -8,6 +8,6 @@ Lightweight, easy-to-use CLI password manager written in C++
 * Simple to learn and use.
 
 # WIP
-* Encryption & Decryption Implementation
+* Encryption & Decryption Implementation (potentially using Botan)
 * Cross-Platform Password Entry (currently only works on Windows)
 * GUI (maybe?)
