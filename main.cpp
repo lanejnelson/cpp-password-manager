@@ -3,7 +3,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <conio.h>
 #include <utility>
 #include <sstream>
 #include <random>
@@ -251,7 +250,7 @@ int main(int argc, char* argv[]) {
 	int choice = -1;
 	int encryptionKey;
 	string filename;
-	Vault* userVault = nullptr;
+	unique_ptr<Vault> userVault = nullptr;
 	printMenu(0);
 	cin >> choice;
 	if (choice == 0) {
@@ -259,7 +258,7 @@ int main(int argc, char* argv[]) {
 		cin >> encryptionKey;
 		cout << "Enter the filename of your vault: ";
 		cin >> filename;
-		userVault = new Vault(filename, encryptionKey);
+		userVault = make_unique<Vault>(filename, encryptionKey);
 		userVault->load();
 	}
 	else if (choice == 1) {
@@ -267,7 +266,7 @@ int main(int argc, char* argv[]) {
 		cin >> encryptionKey;
 		cout << "Enter the desired filename of your new vault: ";
 		cin >> filename;
-		userVault = new Vault(filename, encryptionKey);
+		userVault = make_unique<Vault>(filename, encryptionKey);
 	}
 	else if (choice == 2) {
 		cout << "Exiting..." << endl;
@@ -314,7 +313,6 @@ int main(int argc, char* argv[]) {
 	}
 	*/
 	cout << "Exiting password manager..." << endl;
-	delete userVault;
 	return 0;
 	//cout << "Hello world!" << endl;
 }
