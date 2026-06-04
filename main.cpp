@@ -18,14 +18,14 @@ struct PassEntry {
 
 class Vault {
 	string filename;
-	int encryptionKey;
+	string encryptionKey;
 
 private:
 	vector<pair<int, PassEntry>> entries;
 	int numEntries;
 
 public:
-	Vault(string filenameIn, int encryptionKeyIn);
+	Vault(string filenameIn, string encryptionKeyIn);
 	void add();
 	void encrypt();
 	void decrypt();
@@ -40,7 +40,7 @@ public:
 
 
 
-Vault::Vault(string filenameIn, int encryptionKeyIn) {
+Vault::Vault(string filenameIn, string encryptionKeyIn) {
 	filename = filenameIn;
 	encryptionKey = encryptionKeyIn;
 	numEntries = 0;
@@ -147,27 +147,37 @@ void Vault::view() {
 }
 
 bool Vault::save() {
-	ofstream savedVault(filename);
+	ostringstream vaultContents;
+	//ofstream savedVault(filename);
+	/*
 	if (!savedVault.is_open()) {
 		cout << "Some error has happened I'm not really sure what" << endl;
 		return false;
 	}
+	*/
 	for (int i = 0; i < numEntries; i++) {
-		savedVault << entries.at(i).first << ";" << entries.at(i).second.url << ";" << entries.at(i).second.username << ";" << entries.at(i).second.password << endl;
+		vaultContents << entries.at(i).first << ";" << entries.at(i).second.url << ";" << entries.at(i).second.username << ";" << entries.at(i).second.password << endl;
+		//savedVault << entries.at(i).first << ";" << entries.at(i).second.url << ";" << entries.at(i).second.username << ";" << entries.at(i).second.password << endl;
 	}
+	string vaultText = vaultContents.str();
+	encryptAndSaveFile(encryptionKey, filename, vaultText);
 	cout << "Vault has been saved to " << filename << "." << endl;
-	savedVault.close();
+	//savedVault.close();
 	return true;
 }
 
 bool Vault::load() {
+	string plaintextContents = decryptAndLoadFile(encryptionKey, filename);
+	/*
 	ifstream vaultFile(filename);
 	if (!vaultFile.is_open()) {
 		cout << "Loading failed try again later." << endl;
 		return false;;
 	}
+	*/
+	istringstream plaintextStream(plaintextContents);
 	string entry;
-	while (getline(vaultFile, entry)) {
+	while (getline(plaintextStream, entry)) {
 		int id;
 		string url;
 		string username;
@@ -184,7 +194,7 @@ bool Vault::load() {
 		entries.push_back({ id, currEntry });
 		++numEntries;
 	}
-	vaultFile.close();
+	//vaultFile.close();
 	return true;
 }
 
@@ -248,7 +258,7 @@ void printMenu(int stage) {
 
 int main(int argc, char* argv[]) {
 	int choice = -1;
-	int encryptionKey;
+	string encryptionKey;
 	string filename;
 	unique_ptr<Vault> userVault = nullptr;
 	printMenu(0);
